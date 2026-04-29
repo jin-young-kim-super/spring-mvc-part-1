@@ -1,0 +1,3 @@
+지금 RequestParamServlet 클래스를 보면
+GET 파라미터 조회와 POST 파라미터 조회 시 같은 메서드를 사용하고 있다. 
+이게 가능한 이유는 form 태그로 데이터 전송 시 Message Body의 파라미터는 결국 GET 파라미터와 같은 key,value 형태이기 떄문에 조회 로직이 같기 때문이다. 
