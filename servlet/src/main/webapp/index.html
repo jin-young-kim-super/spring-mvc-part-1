@@ -1,0 +1,27 @@
+<!--
+Q. localhost:8080 요청이 있을 때 왜 index.html이 자동 반환이 될까?
+A. 결론은 Servlet의 Welcome file 규칙 때문이다.
+→일단 Servlet Container에는 톰캣이 Default Servlet이라는 것을 자동으로 등록을 시킨다.
+이 Servlet의 역할은 [기준 도메인 + /] 요청이 들어 왔을 때 만약 이 url과 매핑된 Servlet이 없다면 Tomcat이 Servlet Container에서 들고 온다.
+Servlet은 규칙상 이러한 요청이 들어 왔을 때 애플리케이션의【root directory】전체를 다 뒤져서 index.html이라는 파일을 찾게 하고 있으면 그것을 반환하도록 되어 있다.
+(이러한 파일을 Welcome File 또는 Welcome Page라고 부른다)
+이때는 스프링 애플리케이션 코드를 거치지 않고 톰캣 내부에서 위 과정들이 모두 일어난다
+Welcome File 기본 목록
+EX)
+・index.html
+・index.jsp
+
+
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<ul>
+    <li><a href="basic.html">서블릿 basic</a></li>
+</ul>
+</body>
+</html>
