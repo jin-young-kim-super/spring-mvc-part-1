@@ -1,0 +1,36 @@
+        response.setContentType("application/json");
+        response.setCharacterEncoding("utf-8"); // encoding 정보 입력
+
+        // messageBody
+        HelloData helloData = new HelloData();
+        helloData.setUsername("kim");
+        helloData.setAge(20);
+
+        // Object -> 문자열(JSON)
+        String result = objectMapper.writeValueAsString(helloData);
+
+        PrintWriter writer = response.getWriter(); // 이 과정에서 utf-8 설정에 의해 문자 스트림 -> 바이트 스트림으로 변환(반드시 setCharacterEncoding("utf-8") 설정 필요)
+        writer.println(result);
+
+-> application/json은 스펙상 utf-8을 사용하도록 정의돼 있다. 그래서 response.setCharacterEncoding("utf-8") 같은 설정을 원래 하면은 안 된다. 
+근데 PrintWriter writer = response.getWriter()은 문자 기반 스트림이다. 이게 의미하는 바는 encoding 정보가 반드시 있어야만 변환이 가능하다는 것이다. 
+이떄 setCharacterEncoding("utf-8")을 보고 utf-8로 바이트 코드로 변환을 한다. 근데 만약 이렇게 되면 문제가 하나 있다.
+
+개선 버전)
+response.setContentType("application/json");
+
+HelloData helloData = new HelloData();
+helloData.setUsername("kim");
+helloData.setAge(20);
+
+// 바로 OutputStream에 쓰기
+ServletOutputStream out = response.getOutputStream(); 
+objectMapper.writeValue(out, helloData);// out, 즉 response.getOutPutStream()은 문자 코드 helloData를 자동으로 utf-8로 변환하여 바이트 스트림으로 바꾼다
+out.flush();                            // 반대로 response.getWriter()는 setCharacterEncoding("utf-8")으로 인코딩을 지정해 주지 않으면 인코딩 정보를 모른다.
+※근데 실무에서는 반드시 아래와 같이 인코딩 정보를 명시하는 것이 좋다. 왜냐하면 RFC 스펙대로 클라이언트(ex.브라우저)에서 json을 utf-8로 안 돼 있는 경우도
+있을 수 있기 때문이다.
+
+
+
+
+
