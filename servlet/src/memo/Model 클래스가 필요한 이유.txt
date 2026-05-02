@@ -1,0 +1,16 @@
+ControllerV2는 서블릿에 종속적이였다
+즉, 각 컨트롤러가 HttpRequestServlet, HttpResponseServlet을 매개변수로 고정돼 있다.
+그러나 MemberFormControllerV2에서는 아예 이 2개의 매개변수가 필요가 없고, MemberSaveControllerV2, MemberListControllerV2에서는 HttpRequestServlet만 사용하고 있고, 
+HttpResponseServlet은 사용하지 않고 있다. 
+이러한 문제점을 해결하기 위해 이번 시간에는 Model 객체를 도입해 볼 것이다. 
+-> MemberSaveControllerV2, MemberListControllerV2에서 HttpRequestServlet이 필요한 이유는 궁극적으로 【요청 파라미터】가 필요해서 이다. 
+그럼 HttpRequestServlet에 들어 있는 요청 파라미터를 Model 객체에 담아서 각 컨트롤러에 보내주면 위 문제점들이 모두 해결이 된다. 
+
+/WEB-INFO/views
+-> 각 컨트롤러에서 중복되는 이 경로 부분을 FrontController에서 공통 처리를 할 것이다.
+이렇게 되면 변경 이유가 jsp 파일의 경로였을 때 FrontConller에서 한 번만 수정해주면 된다.
+
+
+createParamMap 메서드
+-> 컨트롤러에서 전달한 데이터를 request 객체에 담고 있다. 이건 jsp가 데이터를 request 객체에서 꺼내기 때문이다.
+다른 템플리 엔진은 request 객체가 아닌 또다른 객체에 데이터를 꺼내 쓴다.
