@@ -24,6 +24,7 @@ public class MyView {
     public void render(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         modelToRequestAttribute(model, request);
         RequestDispatcher dispatcher = request.getRequestDispatcher(viewPath);
+        System.out.println("dispatcher = " + viewPath);
         dispatcher.forward(request,response);
     }
 
