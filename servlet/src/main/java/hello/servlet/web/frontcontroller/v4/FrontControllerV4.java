@@ -1,10 +1,10 @@
-package hello.servlet.web.frontcontroller.v3;
+package hello.servlet.web.frontcontroller.v4;
 
 import hello.servlet.web.frontcontroller.ModelView;
 import hello.servlet.web.frontcontroller.MyView;
-import hello.servlet.web.frontcontroller.v3.controller.MemberFormControllerV3;
-import hello.servlet.web.frontcontroller.v3.controller.MemberListControllerV3;
-import hello.servlet.web.frontcontroller.v3.controller.MemberSaveControllerV3;
+import hello.servlet.web.frontcontroller.v4.controller.MemberFormControllerV4;
+import hello.servlet.web.frontcontroller.v4.controller.MemberListControllerV4;
+import hello.servlet.web.frontcontroller.v4.controller.MemberSaveControllerV4;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,36 +16,37 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@WebServlet(name="frontControllerV4", urlPatterns = "/front-controller/v4/*")
+public class FrontControllerV4 extends HttpServlet {
 
-@WebServlet(name = "frontControllerV3", urlPatterns = "/front-controller/v3/*")
-public class FrontControllerV3 extends HttpServlet {
+    private Map<String,ControllerV4> controllerMap = new HashMap<>();
 
-    private Map<String, ControllerV3> controllerMap = new HashMap<>();
-
-    public FrontControllerV3() {
-        controllerMap.put("/front-controller/v3/members/new-form", new MemberFormControllerV3());
-        controllerMap.put("/front-controller/v3/members/save", new MemberSaveControllerV3());
-        controllerMap.put("/front-controller/v3/members", new MemberListControllerV3());
+    public FrontControllerV4() {
+        controllerMap.put("/front-controller/v4/members/new-form", new MemberFormControllerV4());
+        controllerMap.put("/front-controller/v4/members/save", new MemberSaveControllerV4());
+        controllerMap.put("/front-controller/v4/members", new MemberListControllerV4());
     }
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
-        ControllerV3 controller = controllerMap.get(requestURI);
+        ControllerV4 controller = controllerMap.get(requestURI);
 
         if (controller == null) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
-        // paramMap
+        // paramMap, model
         HashMap<String, String> paramMap = createParamMap(request);
+        HashMap<String, Object> model = new HashMap<>();
 
-        ModelView mv = controller.process(paramMap);
-        String viewPath = mv.getViewPath();
+
+        String viewPath = controller.process(paramMap,model);
+
         MyView myView = viewResolver(viewPath);
-        myView.render(mv.getModel(),request,response);
+        myView.render(model,request,response);
     }
 
     private static @NonNull MyView viewResolver(String viewPath) {
