@@ -1,0 +1,6 @@
+Dispatcher Servlet(FrontController와 이름만 다를 뿐 구조는 똑같다)
+-> 스프링에서는 FrontController를 Dispatcher Servlet이라고 부른다. 이건 모든 경로 urlPatterns="/"에 대해서 매핑한다. 
+만약 개발자가 만든 서블릿 객체가 있는데 스프링은 항상 구체적인 것이 우선순위가 높으므로 이 서블릿 객체는 Dispatcher Servlet를 거치지 않고 직접적으로 실행이 된다.
+ex)
+@WebServlet("/hello")
+public class HelloServlet
