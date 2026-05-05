@@ -1,0 +1,63 @@
+[대전제]
+DispatcherServlet은 스프링 컨테이너에서 핸들러를 조회한다
+
+@Controller 애노테이션이 아닌 옛날 방식으로 Adapter 구현해보기
+-> @Controller도 결국에는 마법이 아니라 어딘가에서는 ControllerV* 같은 인터페이스를 상속받아 Adapter를 구현했을 것이다.
+
+이번 시간에는 애노테이션 탄생 이전에 스프링에서 어떻게 Adapter와 HandlerMapping을 만들었는지 살짝 구현해 볼 것이다.
+
+
+Dispatcher Servlet에서 핸들러 매핑과 어댑터가 인터페이스 기반인 이유
+-> 당연히 OCP, 즉 기능 확장성이다.
+Controller 인터페이스와 @RequestMapping의 핸들러 매핑은 서로 다른 클래스를 사용. 어댑터도 서로 다른 클래스를 사용
+
+Controller 인터페이스용의 핸들러 매핑 클래스 : BeanNameUrlHandlerMapping(스프링 빈의 이름으로 핸들러(컨트롤러)를 찾아서 반환)
+-> FrontConoller의 getHandler()의 역할. 그러나 여기서 주의해야 할 것이 있다. FrontController는 지금 핸들러 매핑이 인터페이스 기반이 아니라
+함수로 돼 있다. handlerMapping의 Map에서 등록한 <url,handler>에서 url에 맞는 handler를 일일이 찾고 있는 것이다. 이건 학습용이라 간단하게 구현한 것이고
+dispatcher servlet, 즉 스프링은 이 모든 것을 인터페이스 기반으로 만들어 확장성 있게 만들었다. 예를 들어 스프링 빈의 이름으로 핸들러를 찾는 것이 아니라
+애노테이션을 기반으로 핸들러를 찾을 때에는 스프링에서 RequestHandlerMapping이라는 클래스를 사용해야 하는데 이렇게 기능의 확장을 하여도 dispatcher servlet에서 코드 변경없이
+사용가능 하도록 스프링의 dispatcher servlet은 인터페이스 기반으로 해두었다.
+핸들러 어댑터도 똑같은 이유로 인터페이스 기반으로 해놓았다.(FrontContrller에서 getHandlerAdapterController 함수로 구현해 놓았다)
+인터페이스 기반의 컨트롤러를 찾을 때에는 BeanNameUrlHandlerAdapter을 사용해야 하지만 애노테이션 기반으로 어댑터를 찾을 때에는 RequestMappingHandlerAdpater라는 클래스를 사용한다.
+이렇게 여러 기능 확장성을 위하여 스프링은 dispatcher servlet에서 인터페이스 기반을 사용하고 있다.
+
+[구체적인 실행 흐름]
+핸들러 매핑
+0순위 RequestHandlerMapping(@RequestMapping 애노테이션 기반)
+1순위 BeanNameUrlHandlerMapping(스프링 빈의 이름과 url이 같은 핸들러를 찾음)
+-> HandlerMapping 인터페이스에 이미 스프링이 위 HandlerMapping 클래스를 등록해 놓는다.
+그 다음에 각 핸들러에 @RequestMapping 애노테이션이 있고 url도 일치하면 그 핸들러를 반환. 만약 @RequestMapping이 하나도 없거나 url이 일치하지 않으면
+다음 루프문이 돌아 이제는 BeanNameUrlHandlerMapping으로 핸들러 중 스프링 빈이름과 url이 일치하는 핸들러가 있는지 찾는다.
+만약 있다면 그 핸들러를 반환을 한다.
+
+어댑터 매핑
+0순위 RequestMappingHandlerAdpater(@RequestMapping 애노테이션 기반)
+1순위 HttpRequestHandlerAdapter(HttpRequestHandler 처리, 순수 서블릿 방식)
+2순위 BeanNameUrlHandlerAdapter(Controller 인터페이스 기반의 어댑터)
+-> 핸들러 매핑에서 매핑된 핸들러가 반환이 되면 이 핸들러를 지원하는 어댑터를 뒤져야 한다.
+이 로직도 핸들러 매핑과 똑같다. 위 어댑터 클래스들이 dispatcher servlet에 이미 다 등록이 돼 있다. 우선순위가 높은 것부터
+support() 함수를 통해 지원되는 어댑터인지 아닌지를 확인한다. 결국에는 BeanNameUrlHandlerMapping.supprt(핸들러)에서 true가 반환되어 이 어댑터가 실행이 된다.
+Controller 인터페이스의 handleRequest 메서드를 BeanNameUrlHandlerMapping에서 실행하여 Controller 인터페이스의 구현체인 OldVersionController를 실행한다.
+※FrotController의 ControllerV3HandlerAdapter는 RequestMappingHandlerAdapter로 어댑터 리스트에 등록이 돼 있고, ControllerV4HandlerAdapter는
+BeanNameUrlHandlerAdapter로 매핑이 돼 있다고 생각하면 된다. 즉, 서로 다른 인터페이스마다 Adapter 클래스가 등록돼 있는 것이다.
+
+
+HttpRequestHandlerAdapter
+-> HttpRequestHandler 인터페이스 내부는 아래와 같다.
+public interface HttpRequestHandler {
+
+	/**
+	 * Process the given request, generating a response.
+	 * @param request current HTTP request
+	 * @param response current HTTP response
+	 * @throws ServletException in case of general errors
+	 * @throws IOException in case of I/O errors
+	 */
+	void handleRequest(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException;
+
+}
+
+반환형이 void이므로 dispatcher servlet에 아무 것도 반환하지 않는다.
+이건 순수 서블릿 방식의 개발에서 주로 사용된다. 즉 핸들러 안에서 비지니스 로직/HTMl을 모두 다 해야 하는 방식이다.
+

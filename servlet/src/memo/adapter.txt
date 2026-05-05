@@ -1,9 +1,15 @@
 개발자마다 서로 다른 인터페이스의 구현 클래스를 선택적으로 사용하고 싶을 떄가 있다. 
 그러나 v4 버전에서는 ControllerV4를 전제로 하기에 구조적으로 ControllerV1~V3 버전의 컨트롤러를 사용 못한다. 
-그래서 adapter를 사용한다.
+그래서 MyHandlerAdapter라는 인터페이스를 만들어서 ControllerV1~V3 중 어떤 컨트롤러를 사용하던 반환형 ModelView를 반환하게 하고
+매개변수도 Map<String, String> paramMap, Map<String, Object> model을 사용하도록 인터페이스에 정의를 해서, 각 버전의 Adapter에서 그 interface를 상속받아서
+FrontController에서는 코드 변경 없이 어떤 버전의 ControllerV*를 사용가능 하도록 Adapter를 구현한다.
 
 adapter
 -> 만약에 ControllerV3 컨트롤러를 사용하고 싶다고 하자. ControllerV3 인터페이스는 매개변수도 다르고 반환형도 다르다. 
 그래서 adapter라는 별도의 객체를 생성하여 ControllerV3 인터페이스에 맞게 매개변수도 맞추고 반환되는 타입도 고려해서 컨트롤러를 실행시켜야 한다. 
-그래서 MyHandlerAdapter의 ControllerV3 실행용 adapter를 따로 만들어 줘야 한다. 
+그래서 MyHandlerAdapter의 ControllerV3 실행용 adapter를 따로 만들어 줘야 한다. 만약 ControllerV4 컨트롤러를 사용하더라고 MyHandlerAdapter라는 같은 인터페이스를
+상속받아서 ControllerV4 컨트롤러 버전에 맞게 인터페이스를 구현하면 FrontController에서는 어떤 코드의 변경 없이 서로 다른 반환형과 매개변수인 ControllverV*의 컨트롤러를
+호출하고 사용 가능하다. 이게 adapter의 본질이다.
+
+
 
