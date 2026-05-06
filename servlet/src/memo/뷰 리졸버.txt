@@ -1,0 +1,14 @@
+스프링에서 뷰리졸버는 properties 등의 설정 파일로 세팅을 한다. 
+
+spring.mvc.view.prefix=/WEB-INFO/views/
+spring.mvc.view.suffix=.jsp
+의 경우, 아래의 뷰 리졸버 객체를 생성한다. 
+
+@Configuration
+	@Bean
+	InternalResourceViewResolver mehod(...)
+-> [InternalResource]ViewResolver 객체는 jsp와 같이 forward()를 통해 서버 내부(Interal)에서 jsp 파일(Resource)로 이동해서 반환할 때 사용하는 뷰 리졸버
+
+dispatcher servlet의 뷰 리졸버 우선 순위
+1 = BeanNameViewResolver : 빈 이름으로 뷰를 찾아서 반환한다. (예: 엑셀 파일 생성 기능)
+2 = InternalResourceViewResolver : JSP를 처리할 수 있는 뷰를 반환한다.
