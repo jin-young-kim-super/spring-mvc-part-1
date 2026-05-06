@@ -1,0 +1,75 @@
+@RequestMapping 애노테이션이 등장하고나서 [유연한] 컨트롤러 탄생
+
+1️.메서드 시그니처가 자유롭다
+(1) Controller 인터페이스 방식
+public class OldController implements Controller {
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response)
+}
+
+문제점은 딱 하나야:
+👉 스프링이 강제하는 구조에 맞춰야만 한다
+메서드 이름 고정 (handleRequest)
+파라미터 타입 고정 (HttpServletRequest, HttpServletResponse)
+반환 타입 고정 (ModelAndView)
+즉, 내가 원하는 방식으로 못 짠다.
+
+(2) HttpRequestHandler 방식
+public class MyHandler implements HttpRequestHandler {
+    public void handleRequest(HttpServletRequest request, HttpServletResponse response)
+}
+이것도 마찬가지야:
+👉 Servlet API에 강하게 묶임
+
+이제는 아래와 같이 메서드 시그니처를 자유롭게 바꿀 수가 있다. 
+public String method1()
+public void method2(HttpServletRequest request)
+public ResponseEntity<String> method3()
+public String method4(@RequestParam String name)
+
+👉 아무거나 써도 된다
+
+스프링이 알아서 다 맞춰준다.
+
+(이걸 내부적으로 HandlerAdapter가 처리함)
+
+
+2️. Servlet API에서 벗어날 수 있다
+
+예전:
+HttpServletRequest request
+
+지금:
+@RequestParam String name
+
+
+3️. 반환 타입도 자유
+String
+ModelAndView
+ResponseEntity
+void
+👉 상황에 맞게 선택 가능
+즉, “프레임워크가 개발자 코드를 제한하지 않고, 개발자가 원하는 형태로 코드를 작성하면 스프링이 거기에 맞춰준다”.
+그리고 이걸 가능하게 한 것이 바로 dispatcher servlet의 핸들러 매핑과 어댑터 매핑이다. 
+
+
+구체적인 동작 흐름
+@Controller // or @RequestMapping
+public class SpringMemberFormControllerV1 {
+    @RequestMapping("/springmvc/v1/members/new-form")
+    public ModelAndView process() {
+        return new ModelAndView("new-form");
+    }
+}
+
+1. /springmvc/v1/members/new-form 요청이 들어옴.
+
+2. dispatcher servlet의 handlerMapping의 우선순위에 따라 RequestMappingHandlerMapping 클래스로 스프링 빈 중에 클래스 위에 @Controller 혹은 @RequestMappingHandlerMapping
+이 붙어 있는 모든 핸들러를 찾는다(2개 이상의 핸들러가 조회돼도 ㄱㅊ)
+
+3. 그 다음 2에서 찾은 핸들러의 모든 메서드의 @RequestMapping의 url을 보고 일치하는 url의 메서드를 호출한다.
+
+4. 이떄 RequestMappingAdapterMapping을 통해 해당 메서드의 반환 타입, 매개변수를 처리할 수 있는 Adapter를 찾아서 실행한다.
+
+※고로, 스프링이 오로지 @Controller, @RequestMapping만을 보고 호출되는 핸들러와 메서드를 호출해 주기기에 개발자는 유연한게 메서드명과 반환 타입, 매개변수를 설정할 수가 있다.
+-> RequestMappingAdatper에는 모든 반환타입, 모든 매개변수에 대응되는 모든 Adapter가 이미 등록이 돼 있다.(전략 패턴으로 구현돼 있음)
+
